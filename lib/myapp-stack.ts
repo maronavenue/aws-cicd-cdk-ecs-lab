@@ -60,6 +60,7 @@ export class MyappStack extends cdk.Stack {
     return [
       this.createStageSource(sourceOutput),
       this.createStageBuild(sourceOutput, buildOutput),
+      this.createStageDeploy(buildOutput)
     ];
   }
   
@@ -104,6 +105,23 @@ export class MyappStack extends cdk.Stack {
       actions: [
         action
       ]
+    };
+  }
+  
+  createStageDeploy(input: codepipeline.Artifact): codepipeline.StageOptions {
+    this.imageRepository.grantPull(this.service.taskDefinition.executionRole!);
+
+    const action = new codepipelineActions.EcsDeployAction({
+      actionName: 'ProductionEcsDeployAction',
+      input: input,
+      service: this.service,
+    });
+
+    return {
+        stageName: 'DeployToProduction',
+        actions: [
+          action
+        ],
     };
   }
 }
